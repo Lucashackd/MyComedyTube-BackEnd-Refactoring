@@ -34,6 +34,6 @@ public class VideoService {
     }
 
     public Video watch(Long id) {
-
+        return null; // TODO
     }
 }

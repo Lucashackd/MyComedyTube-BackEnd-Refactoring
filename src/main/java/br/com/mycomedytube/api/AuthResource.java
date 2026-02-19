@@ -29,9 +29,9 @@ public class AuthResource {
     @POST
     @Path("/login")
     public Response login(@Valid LoginDTO login) {
-        User user = userService.searchByEmail(login.getEmail());
+        User user = userService.searchByEmail(login.email());
 
-        if (user != null && user.getPassword().equals(login.getPassword())) {
+        if (user != null && user.getPassword().equals(login.password())) {
             String token = tokenService.generateToken(user);
             return Response.ok().entity("{\"token\": \"" + token + "\"}").build();
         }

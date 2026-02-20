@@ -14,6 +14,9 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <wildfly.version>35.0.1.Final</wildfly.version>
+        <wildfly-plugin.version>5.0.1.Final</wildfly-plugin.version>
     </properties>
 
     <dependencies>
@@ -21,18 +24,12 @@
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>9.5.0</version>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
-            <version>11.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>7.2.4.Final</version>
+            <version>10.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -67,6 +64,46 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.5.1</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <version>${wildfly-plugin.version}</version>
+                <configuration>
+                    <version>${wildfly.version}</version>
+                    <server-config>standalone.xml</server-config>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>provision-datasource</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>execute-commands</goal>
+                        </goals>
+                        <configuration>
+                            <commands>
+                                <command>
+                                    /subsystem=datasources/jdbc-driver=mysql:add(
+                                    driver-name=mysql,
+                                    driver-module-name=com.mysql,
+                                    driver-class-name=com.mysql.cj.jdbc.Driver
+                                    )
+                                </command>
+                                <command>
+                                    data-source add
+                                    --name=MySQLDS
+                                    --jndi-name=java:/MySQLDS
+                                    --driver-name=mysql
+                                    --connection-url=jdbc:mysql://localhost:3306/mycomedytube_db
+                                    --user-name=root
+                                    --password=1995
+                                    --use-java-context=true
+                                </command>
+                            </commands>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

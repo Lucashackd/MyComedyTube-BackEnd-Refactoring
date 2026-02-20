@@ -22,7 +22,7 @@ public class AuthFilter implements ContainerRequestFilter {
         // Take the Authorization header
         String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
-        // Verify if has the Bearer
+        // Verify if it has the Bearer
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             abort(requestContext);
             return;
@@ -34,10 +34,8 @@ public class AuthFilter implements ContainerRequestFilter {
 
         if (email == null) abort(requestContext);
 
-        /*
-        Pro tip: Inject the user in the request to use later
+        // Inject the user in the request to use later
         requestContext.setProperty("user_email", email);
-        */
     }
 
     public void abort(ContainerRequestContext context) {

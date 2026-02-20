@@ -12,8 +12,10 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.mindrot.jbcrypt.BCrypt;
 
 @Path("/auth")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -31,7 +33,7 @@ public class AuthResource {
     public Response login(@Valid LoginDTO login) {
         User user = userService.searchByEmail(login.email());
 
-        if (user != null && user.getPassword().equals(login.password())) {
+        if (user != null && (BCrypt.checkpw(login.password(), user.getPassword()))) {
             String token = tokenService.generateToken(user);
             return Response.ok().entity("{\"token\": \"" + token + "\"}").build();
         }

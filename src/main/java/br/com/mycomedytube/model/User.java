@@ -23,11 +23,20 @@ public class User implements Serializable {
 
     private String password;
     private String avatar;
+
+    public boolean isAdmin;
+
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     @PrePersist
     public void beforeCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void beforeUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public User() {
@@ -76,7 +85,19 @@ public class User implements Serializable {
         this.avatar = avatar;
     }
 
+    public Boolean getAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

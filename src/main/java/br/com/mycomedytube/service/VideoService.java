@@ -15,7 +15,7 @@ public class VideoService {
     @Inject
     private VideoRepository repository;
 
-    public Video upload(Video video) {
+    public void upload(Video video) {
         if (video.getTitle() == null || video.getTitle().trim().isEmpty()) {
             throw new RuntimeException("Video title should not be empty");
         }
@@ -25,8 +25,6 @@ public class VideoService {
         }
 
         repository.create(video);
-
-        return video;
     }
 
     public List<Video> listAll() {

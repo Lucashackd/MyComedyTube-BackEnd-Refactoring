@@ -24,7 +24,9 @@ public class User implements Serializable {
     private String password;
     private String avatar;
 
-    public boolean isAdmin;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    public UserRole role = UserRole.REGULAR; // Set new users as "regular users" by default
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -42,11 +44,12 @@ public class User implements Serializable {
     public User() {
     }
 
-    public User(String name, String email, String password, String avatar) {
+    public User(String name, String email, String password, String avatar, UserRole role) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.avatar = avatar;
+        this.role = role;
     }
 
     public Long getId() {
@@ -85,12 +88,12 @@ public class User implements Serializable {
         this.avatar = avatar;
     }
 
-    public Boolean getAdmin() {
-        return isAdmin;
+    public UserRole getRole() {
+        return role;
     }
 
-    public void setAdmin(Boolean isAdmin) {
-        this.isAdmin = isAdmin;
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public LocalDateTime getCreatedAt() {

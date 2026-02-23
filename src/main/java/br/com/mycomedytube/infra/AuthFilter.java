@@ -1,44 +1,90 @@
 package br.com.mycomedytube.infra;
 
+import br.com.mycomedytube.model.UserRole;
 import br.com.mycomedytube.service.TokenService;
+import io.jsonwebtoken.Claims;
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @Provider
 @Secured
 @Priority(Priorities.AUTHENTICATION)
 public class AuthFilter implements ContainerRequestFilter {
 
+    @Inject
     private TokenService tokenService;
 
-    public void filter(ContainerRequestContext requestContext) throws IOException {
-        // Take the Authorization header
-        String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
+    @Context
+    private ResourceInfo resourceInfo; // Helps to read which method the user is trying to access
 
-        // Verify if it has the Bearer
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            abort(requestContext);
-            return;
+    @Override
+    public void filter(ContainerRequestContext requestContext) throws IOException {
+        /*
+         * Skips the filter when login in and registering
+         */
+        String path = requestContext.getUriInfo().getPath();
+        if (path.contains("/login") || path.contains("/register")) return;
+
+        String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION); // Take the Authorization header
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring("Bearer".length()).trim(); // Remove "Bearer "
+
+            Claims claims = tokenService.validateToken(token);
+            if (claims != null) {
+                /*
+                 * Valid token! Extract the data
+                 */
+                String email = claims.getSubject();
+                String roleString = claims.get("role", String.class);
+                UserRole userRole = UserRole.valueOf(roleString);
+
+                /*
+                 * Insert the user properties in the requisition for later use
+                 */
+                requestContext.setProperty("user_email", email);
+                requestContext.setProperty("User_role", userRole.name());
+
+                checkPermissions(userRole, requestContext);
+                return;
+            }
         }
 
-        // Extract the token and validates it
-        String token = authHeader.substring(7); // Remove "Bearer "
-        String email = tokenService.validateToken(token);
-
-        if (email == null) abort(requestContext);
-
-        // Inject the user in the request to use later
-        requestContext.setProperty("user_email", email);
+        // If got in here, then token does not exist, is invalid or expired
+        requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+                .entity("Access denied. Token invalid or absent")
+                .build());
     }
 
-    public void abort(ContainerRequestContext context) {
-        context.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+    public void checkPermissions(UserRole userRole, ContainerRequestContext requestContext) {
+        Method method = resourceInfo.getResourceMethod(); // Find which method from the resource the user called
+        Secured secured = method.getAnnotation(Secured.class); // Get the @Secured annotation of this method
+        if (secured == null) {
+            // If the method does not have the annotation, finds out if the whole class has
+            secured = resourceInfo.getResourceClass().getAnnotation(Secured.class);
+        }
+
+        // If the annotation needs some specific role...
+        if (secured != null && secured.value().length > 0) {
+            boolean hasPermission = Arrays.asList(secured.value()).contains(userRole);
+
+            if (!hasPermission) {
+                requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
+                        .entity("You do not have permission to access this resource")
+                        .build());
+            }
+        }
     }
 }

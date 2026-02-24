@@ -23,7 +23,7 @@ public class UserService {
         if (user.getAvatar() == null)
             user.setAvatar("TODO: INSERIR URL PADRÃO");
 
-        repository.create(user);
+        repository.save(user);
     }
 
     public User searchByEmail(String email) {

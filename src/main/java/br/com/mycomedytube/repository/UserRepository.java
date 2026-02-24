@@ -14,7 +14,7 @@ public class UserRepository {
     @PersistenceContext(unitName = "mycomedytube-pu")
     private EntityManager entityManager;
 
-    public void create(User user) {
+    public void save(User user) {
         if (user.getId() == null) entityManager.persist(user);
         else entityManager.merge(user);
     }

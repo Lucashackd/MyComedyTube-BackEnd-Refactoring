@@ -15,7 +15,7 @@ public class VideoRepository {
     @PersistenceContext(unitName = "mycomedytube-pu")
     private EntityManager entityManager;
 
-    public void create(Video video) {
+    public void save(Video video) {
         if (video.getId() == null) entityManager.persist(video);
         else entityManager.merge(video);
     }

@@ -24,7 +24,7 @@ public class VideoService {
             video.setThumbnail("TODO: INSERIR URL PADRÃO");
         }
 
-        repository.create(video);
+        repository.save(video);
     }
 
     public List<Video> listAll() {

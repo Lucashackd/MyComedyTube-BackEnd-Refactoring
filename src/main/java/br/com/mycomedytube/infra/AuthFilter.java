@@ -31,12 +31,6 @@ public class AuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        /*
-         * Skips the filter when login in and registering
-         */
-        String path = requestContext.getUriInfo().getPath();
-        if (path.contains("/login") || path.contains("/register")) return;
-
         String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION); // Take the Authorization header
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -56,6 +50,7 @@ public class AuthFilter implements ContainerRequestFilter {
                  */
                 requestContext.setProperty("user_email", email);
                 requestContext.setProperty("User_role", userRole.name());
+                requestContext.setProperty("raw_token", token);
 
                 checkPermissions(userRole, requestContext);
                 return;
